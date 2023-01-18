@@ -1,50 +1,49 @@
-const eventModel=require('../model/EventModel')
-const endOfDay = require('date-fns/endOfDay')
-const startOfDay = require('date-fns/startOfDay')
-function postDataAdmin(req,res){
-    console.log(req.body)
-    eventModel.create({
-        ...req.body,
-        startDate:startOfDay(new Date()),
-        endDate:endOfDay(new Date())
-    }).then(resa=>res.send(resa))
-    .catch(err=>console.log(err))
+const eventModel = require("../model/EventModel");
+const { eventHandler } = require("../services/eventServices");
+async function postDataAdmin(req, res) {
+  let data = await eventHandler.PostData(req.body);
+  if (!data) {
+    res.status(404).json({ err: 1, message: "Please Provide Data" });
+  } else {
+    res.status(200).json(data);
+  }
 }
-async function getDataevent(req,res){
-    let dataEvent= await eventModel.find()
-    res.status(200).json(dataEvent)
+async function getDataevent(req, res) {
+  let data = await eventHandler.getDataall();
+  if (!data) {
+    res.status(404).json({ err: 1, message: "Something is wrong with getting data" });
+  } else {
+    res.status(200).json(data);
+  }
 }
 
-async function updateEvent(req,res){
-    let dataEvent = await eventModel.findById(req.params.id);
-
-    if(!dataEvent) {
-        res.status(404).send(`Event with id ${req.params.id} not found`);
-        return;
-    }
-
-    const requestBody = req.body;
-    
-    try {
-        const updatedEvent = await eventModel.findByIdAndUpdate(req.params.id, requestBody);
-        res.send(updatedEvent); 
-    }  catch(ex) {
-        return res.status(400).send(ex.message);
-    }
+async function updateEvent(req, res) {
+  let databody = req.body;
+  let data = await eventHandler.updateEvent(req.params.id, databody);
+  if (!data) {
+    res.status(404).json({ err: 1, message: "data is not update" });
+  } else {
+    res.status(200).json(data);
+  }
 }
 
 async function deleteEvent(req, res) {
-    try {
-        const dataEvent = await eventModel.findByIdAndDelete(req.params.id);
-        if(!dataEvent) {
-            res.send({"err":1,"msg":`Event with id ${req.params.id} not found`});
-            return;
-        }
-
-        res.send({"err":0,"msg":"Event deleted"});   
-    } catch(ex) {
-        return res.send({"err":1,"msg":ex.message});
-    }
+  let data = await eventHandler.deleteEvent(req.params.id);
+  if (!data) {
+    res.status(404).json({ err: 1, message: "id is wrong" });
+  } else {
+    res.status(200).json(data);
+  }
 }
+async function getById(req,res){
+//   res.send(req.params.id)
+    let data= await eventHandler.getbyid(req.params.id);
+    if(!data){
+        res.status(404).json({err:1,message:"Id is Wrong"})
+    }
+    else{
+        res.status(200).json(data);
+    }
 
-module.exports={postDataAdmin,getDataevent,updateEvent,deleteEvent}
+}
+module.exports = { postDataAdmin, getDataevent, updateEvent, deleteEvent,getById};
